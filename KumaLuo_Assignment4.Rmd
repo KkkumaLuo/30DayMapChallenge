@@ -1,0 +1,56 @@
+---
+title: "30DaysMapChallenge"
+author: "Kuma Luo"
+date: "2024-11-14"
+output: html_document
+---
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(ggbeeswarm)
+library(scales)
+library(ggiraph)  
+library(scales)   
+library(tigris)   
+```
+
+# 11/13 Day 03 Polygon
+
+```{r}
+us_income <- get_acs(
+  geography = "state",          
+  variables = "B19013_001",    
+  year = 2019,                 
+  survey = "acs1",             
+  geometry = TRUE,             
+  resolution = "20m"           
+)
+
+us_income_shifted <- us_income %>%
+  shift_geometry(position = "outside") %>%  
+  mutate(tooltip = paste(NAME, dollar(estimate), sep = ": "))  
+
+gg_income <- ggplot(us_income_shifted, aes(fill = estimate)) +
+  geom_sf_interactive(aes(tooltip = tooltip, data_id = NAME),  
+                      size = 0.1) +  
+  scale_fill_gradient(low = "lightgreen", high = "darkgreen", labels = label_dollar()) + 
+  labs(
+    title = "Median household income by State, 2019",  
+    caption = "Data source: 2019 1-year ACS, US Census Bureau",  
+    fill = "ACS estimate" 
+  ) +
+  theme_void()  
+
+girafe(ggobj = gg_income) %>%
+  girafe_options(
+    opts_hover(css = "fill:cyan;"),  
+    opts_zoom(max = 10)  
+  )
+```
+
+Green was chosen for income to convey growth and prosperity, common associations with financial metrics. The legend shows dollar values for clarity, and the clean design, with minimal distractions, directs viewers' attention to geographic patterns in income distribution across the states. Also, this interactive map could provide detailed value of each state when you click the state you want to check the income value.
+
+
+
+
+

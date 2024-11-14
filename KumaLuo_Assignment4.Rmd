@@ -51,6 +51,68 @@ girafe(ggobj = gg_income) %>%
 Green was chosen for income to convey growth and prosperity, common associations with financial metrics. The legend shows dollar values for clarity, and the clean design, with minimal distractions, directs viewers' attention to geographic patterns in income distribution across the states. Also, this interactive map could provide detailed value of each state when you click the state you want to check the income value.
 
 
+# 11/14 Day 01 Points
+
+```{r}
+library(sf)
+library(ggplot2)
+library(tigris)
+install.packages("ggspatial")
+library(ggspatial) 
+library(ggrepel)
+library(dplyr)
+```
+
+
+```{r}
+
+stations <- st_read("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/Highspeed_Stations/Highspeed_Stations.shp")
+
+key_station_names <- c(
+  "30th Street Station", "69th Street Transportation Center", "Frankford Transportation Center",
+  "Norristown Transportation Center", "Fern Rock Transportation Center", "Arrott Transportation Center",
+  "NRG Station", "Chinatown", "8th", "Olney", "Girard", "Wynnewood Rd", "Ardmore Ave", 
+  "Bryn Mawr", "Villanova"
+)
+
+key_stations <- stations %>%
+  filter(Station %in% key_station_names) 
+
+se_pa_counties <- counties(state = "PA", cb = TRUE, year = 2021) %>%
+  filter(NAME %in% c("Delaware", "Montgomery", "Philadelphia")) %>%
+  st_transform(st_crs(stations)) 
+
+ggplot() +
+  geom_sf(data = se_pa_counties, fill = "grey90", color = "black", size = 0.5) +
+  geom_sf(data = stations, color = "blue", size = 1, alpha = 0.5) +  
+  geom_sf(data = key_stations, color = "red", size = 3) +  
+  geom_label_repel(data = key_stations, aes(geometry = geometry, label = Station), 
+                   stat = "sf_coordinates", nudge_y = 0.01, color = "darkred",
+                   size = 3, min.segment.length = 0) +  
+  labs(
+    title = "Key High-Speed and Major Stations in in Southeastern Pennsylvania",
+    caption = "Data source: SEPTA"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.caption = element_text(size = 10)
+  )
+
+```
+
+This map highlights the key high-speed and major rail stations in Southeastern Pennsylvania, focusing on Philadelphia and its surrounding counties (Delaware, and Montgomery). The highlighted stations represent critical transit hubs and high-traffic stops, providing an overview of the region’s significant rail nodes. Key stations are marked with larger, red points to distinguish them from other stations, which are represented with smaller blue dots. Each highlighted station is labeled with a clear, bordered label, using ggrepel to prevent overlap and ensure readability. 
+
+
+
+
+
+
+
+
+
+
+
 
 
 

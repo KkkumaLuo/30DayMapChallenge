@@ -104,11 +104,47 @@ ggplot() +
 This map highlights the key high-speed and major rail stations in Southeastern Pennsylvania, focusing on Philadelphia and its surrounding counties (Delaware, and Montgomery). The highlighted stations represent critical transit hubs and high-traffic stops, providing an overview of the region’s significant rail nodes. Key stations are marked with larger, red points to distinguish them from other stations, which are represented with smaller blue dots. Each highlighted station is labeled with a clear, bordered label, using ggrepel to prevent overlap and ensure readability. 
 
 
+# 11/15 Day 02 Line
 
+```{r}
+hydro_features <- st_read("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/Hydrographic_Features_Arc/Hydrographic_Features_Arc.shp")
 
+```
 
+```{r}
+highlighted_features <- c("Schuylkill River", "Delaware River")
 
+highlighted_hydro <- hydro_features %>%
+  filter(creek_name %in% highlighted_features)
 
+highlighted_labels <- highlighted_hydro %>%
+  group_by(creek_name) %>%
+  summarize(geometry = st_union(geometry)) %>%
+  ungroup()
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = se_pa_counties, fill = "grey95", color = "grey", size = 0.3, alpha = 0.5) +  
+  geom_sf(data = hydro_features, color = "lightblue", size = 0.5) +               
+  geom_sf(data = highlighted_hydro, color = "blue", size = 1.2) +                  
+  geom_label_repel(data = highlighted_labels, aes(geometry = geometry, label = creek_name), 
+                   stat = "sf_coordinates", nudge_y = 0.01, color = "darkblue",
+                   size = 3.5, min.segment.length = 0) +                           
+  labs(
+    title = "Hydrographic Features in Philadelphia",
+    subtitle = "Highlighted rivers and waterways",
+    caption = "Data source: OpenDataPhilly"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic"),
+    plot.caption = element_text(size = 10)
+  )
+```
+
+This map visualizes the hydrographic network in Philadelphia, focusing specifically on the prominent waterways: the Delaware River and Schuylkill River. All hydrographic features in the city are displayed in a light blue to provide a contextual background, while the highlighted rivers are represented in a more vivid blue and labeled for clarity. By emphasizing the Delaware and Schuylkill Rivers, the map emphasizes the importance of these waterways to the city’s geography and infrastructure. This design allows viewers to quickly identify these key rivers, while still appreciating the complexity of Philadelphia's overall hydrographic system.
 
 
 

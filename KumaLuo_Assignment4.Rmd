@@ -147,8 +147,49 @@ ggplot() +
 This map visualizes the hydrographic network in Philadelphia, focusing specifically on the prominent waterways: the Delaware River and Schuylkill River. All hydrographic features in the city are displayed in a light blue to provide a contextual background, while the highlighted rivers are represented in a more vivid blue and labeled for clarity. By emphasizing the Delaware and Schuylkill Rivers, the map emphasizes the importance of these waterways to the city’s geography and infrastructure. This design allows viewers to quickly identify these key rivers, while still appreciating the complexity of Philadelphia's overall hydrographic system.
 
 
+# 11/16 Day 16 Choropleth
+```{r}
+planning_districts <- st_read("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge//Vital_Natality_PD/Vital_Natality_PD.shp")
 
+planning_districts_filtered <- planning_districts %>%
+  filter(YEAR == 2023, METRIC_NAM == "count_births")
 
+```
 
+```{r}
+ggplot(planning_districts_filtered) +
+  geom_sf(aes(fill = METRIC_VAL), color = "white", size = 0.3) +
+  scale_fill_viridis_c(
+    option = "magma", direction = -1,
+    name = "Number of Births",
+    labels = comma
+  ) +
+  annotate(
+    "text", x = -75.10, y = 39.85, label = "Lowest Births Here", 
+    color = "red", size = 4, fontface = "bold"
+  ) +
+  annotate(
+    "segment", x = -75.18, xend = -75.15, y = 39.9, yend = 39.85, 
+    color = "red"
+  ) +
+  labs(
+    title = "Philadelphia Vital Statistics - Natality (Births in 2023)",
+    subtitle = "Number of births by planning district",
+    caption = "Data source: OpenDataPhilly"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    panel.background = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic"),
+    plot.caption = element_text(size = 10),
+    legend.position = "right"
+  )
+```
+
+This choropleth map visualizes the number of births by planning district in Philadelphia for the year 2023. Each planning district is colored based on the total number of births, with darker shades indicating higher birth counts and lighter shades indicating lower birth counts. An annotation highlights the planning district with the lowest number of births. The goal of this map is to provide a clear and visually engaging way to understand natality trends across Philadelphia's planning districts. By highlighting the lowest birth area, we want to form a narrative element, and inspire more public health, urban planning, or policy-making discussions.
 
 

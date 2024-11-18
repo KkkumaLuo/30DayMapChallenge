@@ -192,4 +192,68 @@ ggplot(planning_districts_filtered) +
 
 This choropleth map visualizes the number of births by planning district in Philadelphia for the year 2023. Each planning district is colored based on the total number of births, with darker shades indicating higher birth counts and lighter shades indicating lower birth counts. An annotation highlights the planning district with the lowest number of births. The goal of this map is to provide a clear and visually engaging way to understand natality trends across Philadelphia's planning districts. By highlighting the lowest birth area, we want to form a narrative element, and inspire more public health, urban planning, or policy-making discussions.
 
+# 11/17 Day 07 Vintage Style
+
+```{r}
+install.packages("showtext")
+library(showtext)
+install.packages("ggtext")
+library(ggtext)
+
+
+landmarks <- st_read("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/Landmarks_AGOTrainingOnly-shp/8902d0d9-94eb-4763-a5e7-7dc4e412475a2020329-1-xj0ntw.uct4l.shp")
+
+museums <- landmarks %>%
+  filter(FEAT_TYPE == "Museum")
+
+showtext_auto()
+font_add_google(name = "IM Fell English", family = "vintage")
+
+```
+```{r}
+museums_points <- museums %>%
+  st_centroid()
+```
+```{r}
+install.packages("ggimage")
+library(ggimage)
+
+```
+
+```{r}
+museum_icon <- "/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/MuseumIcon.png"
+
+```
+
+
+```{r}
+ggplot() +
+  geom_sf(data = landmarks, fill = "grey", color = NA, size = 0.1, alpha = 0.3) +
+  geom_image(
+    data = museums_points, 
+    aes(x = st_coordinates(geometry)[, 1], y = st_coordinates(geometry)[, 2], image = museum_icon),
+    size = 0.02  
+  ) +
+  labs(
+    title = "<span style='font-size:16pt; font-family:vintage;'>Philadelphia Museums</span>",
+    subtitle = "<span style='font-size:12pt; font-family:vintage;'>Distribution of Museums in the City</span>",
+    caption = "Data source: OpenDataPhilly",
+    x = NULL,  
+    y = NULL  
+    ) +
+  theme_minimal(base_family = "vintage") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(fill = "#F6F0E4", color = NA), 
+    plot.background = element_rect(fill = "#F6F0E4", color = NA, size = 1), 
+    panel.grid = element_blank(),
+    legend.position = "none", 
+    plot.title = element_markdown(hjust = 0.5, margin = margin(b = 10)),
+    plot.subtitle = element_markdown(hjust = 0.5, margin = margin(b = 20)),
+    plot.caption = element_text(hjust = 0.5, face = "italic", size = 10, margin = margin(t = 20))
+  )
+```
+
+The IM Fell English font was chosen to evoke a classic, historical feel suitable for a map focusing on cultural landmarks like museums. A sepia-toned background (#F6F0E4) and muted black frame give the map a vintage and timeless appearance. The goal was to create a visually striking map that communicates the cultural richness of Philadelphia through its museums while adhering to the vintage theme. 
 

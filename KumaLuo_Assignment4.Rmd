@@ -257,3 +257,76 @@ ggplot() +
 
 The IM Fell English font was chosen to evoke a classic, historical feel suitable for a map focusing on cultural landmarks like museums. A sepia-toned background (#F6F0E4) and muted black frame give the map a vintage and timeless appearance. The goal was to create a visually striking map that communicates the cultural richness of Philadelphia through its museums while adhering to the vintage theme. 
 
+# 11/18 Day 04 Hexagons
+
+```{r}
+crime_data <- read.csv("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/crime_incidents_philly.csv")
+
+theft_data <- crime_data %>%
+  filter(!is.na(lat) & !is.na(lng) & text_general_code == "Thefts")
+
+theft_sf <- st_as_sf(theft_data, coords = c("lng", "lat"), crs = 4326)
+
+theft_sf <- st_transform(theft_sf, crs = 3857)
+
+```
+
+```{r}
+valid_x_min <- -75.3  
+valid_x_max <- -74.9  
+valid_y_min <- 39.8   
+valid_y_max <- 40.2
+
+theft_sf_filtered <- theft_sf %>%
+  filter(
+    point_x != 0 & point_y != 0,  
+    point_x >= valid_x_min & point_x <= valid_x_max,  
+    point_y >= valid_y_min & point_y <= valid_y_max   
+  )
+```
+
+
+```{r}
+
+ggplot() +
+  stat_bin_hex(
+    data = theft_sf_filtered,
+    aes(x = point_x, y = point_y), 
+    bins = 30          
+  ) +
+  scale_fill_viridis_c(option = "inferno", name = "Theft Density", direction = -1) +
+  geom_label(
+    aes(x = -75.11, y = 39.95, label = "High Theft Area"), 
+    fill = "white", color = "red", fontface = "bold", size = 4
+  ) +
+  labs(
+    title = "Philadelphia Theft Incidents",
+    subtitle = "Density of theft incidents aggregated into hexagonal bins",
+    caption = "Data source: OpenDataPhilly"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic"),
+    plot.caption = element_text(size = 10)
+  )
+
+```
+
+This map visualizes the density of theft incidents in Philadelphia, by aggregating the data into hexagonal bins for spatial analysis. The color gradient, ranging from light yellow to deep purple, represents the density of theft incidents, where darker shades indicating higher densities. A prominent "High Theft Area" is highlighted with a red-bordered white label and an arrow pointing to the hexagonal bin with the highest density. Hexagons were chosen because of their aesthetic and analytical advantages, such as uniform adjacency and equal distance between centroids.For this map, we want to inform people the theft hot spot in Philadelphia and inspire public safety discussion.
+
+
+
+
+
+
+
+
+
+
+
+
+

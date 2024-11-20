@@ -318,11 +318,57 @@ ggplot() +
 
 This map visualizes the density of theft incidents in Philadelphia, by aggregating the data into hexagonal bins for spatial analysis. The color gradient, ranging from light yellow to deep purple, represents the density of theft incidents, where darker shades indicating higher densities. A prominent "High Theft Area" is highlighted with a red-bordered white label and an arrow pointing to the hexagonal bin with the highest density. Hexagons were chosen because of their aesthetic and analytical advantages, such as uniform adjacency and equal distance between centroids.For this map, we want to inform people the theft hot spot in Philadelphia and inspire public safety discussion.
 
+# 11/19 Day 18 Topography
+
+```{r}
+library(sf)
+library(plotly)
+```
 
 
+```{r}
+buildings <- st_read("/Users/luoxiaoyi/Desktop/2024 Fall/communication/30daysChallenge/30DayMapChallenge/LI_BUILDING_FOOTPRINTS/LI_BUILDING_FOOTPRINTS.shp") %>%
+  st_transform(crs = 4326)
+```
+```{r}
+buildings <- st_make_valid(buildings)
+
+invalid_geometries <- sum(!st_is_valid(buildings))
+if (invalid_geometries > 0) {
+  cat("There are still", invalid_geometries, "invalid geometries.\n")
+} else {
+  cat("All geometries are valid!\n")
+}
+```
 
 
+```{r}
 
+buildings <- buildings %>%
+  mutate(absolute_height = BASE_ELEVA + APPROX_HGT)
+
+building_points <- st_centroid(buildings)
+
+data <- st_coordinates(building_points) %>%
+  as.data.frame() %>%
+  mutate(height = buildings$absolute_height)
+
+plot_ly(
+  data,
+  x = ~X, y = ~Y, z = ~height,
+  type = "scatter3d", mode = "markers",
+  marker = list(size = 3, color = ~height, colorscale = "Viridis", opacity = 0.8)
+) %>%
+  layout(
+    title = "Philadelphia Building Heights",
+    scene = list(
+      xaxis = list(title = "Longitude"),
+      yaxis = list(title = "Latitude"),
+      zaxis = list(title = "Height")
+    )
+  )
+```
+This 3D scatter plot illustrates the height distribution of buildings in Philadelphia. The data combines BASE_ELEVATION and APPROX_HGT to represent the total height of each building. The x- and y-axes denote the spatial coordinates (longitude and latitude), while the z-axis captures the total height. A 3D perspective was chosen to effectively visualize the spatial distribution and varying heights of buildings. The clustering of taller buildings demonstrates urban density and potential areas of economic or business activity. This map could be used for urban planning, zoning assessments, or real estate analysis.
 
 
 

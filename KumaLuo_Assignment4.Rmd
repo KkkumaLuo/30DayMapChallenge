@@ -190,7 +190,7 @@ ggplot(planning_districts_filtered) +
   )
 ```
 
-This choropleth map visualizes the number of births by planning district in Philadelphia for the year 2023. Each planning district is colored based on the total number of births, with darker shades indicating higher birth counts and lighter shades indicating lower birth counts. An annotation highlights the planning district with the lowest number of births. The goal of this map is to provide a clear and visually engaging way to understand natality trends across Philadelphia's planning districts. By highlighting the lowest birth area, we want to form a narrative element, and inspire more public health, urban planning, or policy-making discussions.
+This choropleth map visualizes the number of births by planning district in Philadelphia for the year 2023. Each planning district is colored based on the total number of births, with darker shades indicating higher birth counts and lighter shades indicating lower birth counts. An annotation highlights the planning district with the lowest number of births. The goal of this map is to provide a clear and visually engaging way to understand natality trends across Philadelphia's planning districts. By highlighting the lowest birth area, I want to form a narrative element, and inspire more public health, urban planning, or policy-making discussions.
 
 # 11/17 Day 07 Vintage Style
 
@@ -316,7 +316,7 @@ ggplot() +
 
 ```
 
-This map visualizes the density of theft incidents in Philadelphia, by aggregating the data into hexagonal bins for spatial analysis. The color gradient, ranging from light yellow to deep purple, represents the density of theft incidents, where darker shades indicating higher densities. A prominent "High Theft Area" is highlighted with a red-bordered white label and an arrow pointing to the hexagonal bin with the highest density. Hexagons were chosen because of their aesthetic and analytical advantages, such as uniform adjacency and equal distance between centroids.For this map, we want to inform people the theft hot spot in Philadelphia and inspire public safety discussion.
+This map visualizes the density of theft incidents in Philadelphia, by aggregating the data into hexagonal bins for spatial analysis. The color gradient, ranging from light yellow to deep purple, represents the density of theft incidents, where darker shades indicating higher densities. A prominent "High Theft Area" is highlighted with a red-bordered white label and an arrow pointing to the hexagonal bin with the highest density. Hexagons were chosen because of their aesthetic and analytical advantages, such as uniform adjacency and equal distance between centroids.For this map, I want to inform people the theft hot spot in Philadelphia and inspire public safety discussion.
 
 # 11/19 Day 18 Topography
 
@@ -456,4 +456,61 @@ combined_plot
 I combined spatial and temporal data to indicate the income change over space and time in Pennsylvania. The spatial change map highlights the percentage change in median household income (2010-2020) for each county in Pennsylvania. Counties with extreme changes are prominently visible through stark colors, helping viewers identify key areas quickly. In addition, the temporal trend plot illustrates the overall median household income trend for Pennsylvania from 2010 to 2020. These two visualization together can help identify counties where targeted economic policies might be needed based on negative or stagnant growth.
 
 
+# 11/21 Day 24 Only Circular Shapes
+
+```{r}
+library(tidycensus)
+library(sf)
+library(dplyr)
+library(ggplot2)
+```
+
+```{r}
+philly_census <- get_acs(
+  geography = "block group",
+  variables = "B01003_001E", 
+  state = "PA",
+  county = "Philadelphia",
+  year = 2019,
+  geometry = TRUE
+)
+
+philly_census <- philly_census %>%
+  mutate(
+    area_km2 = as.numeric(st_area(geometry)) / 1e6, 
+    pop_density = estimate / area_km2  
+  )
+
+philly_centroids <- st_centroid(philly_census)
+
+philly_centroids_df <- as.data.frame(st_coordinates(philly_centroids)) %>%
+  bind_cols(philly_census %>% st_drop_geometry())
+
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = philly_census, fill = "grey90", color = "white") + 
+  geom_point(data = philly_centroids_df,
+             aes(x = X, y = Y, size = pop_density, color = pop_density),
+             alpha = 0.7) +
+  scale_size_continuous(range = c(1, 8), name = "Pop Density\n(people/km²)") +
+  scale_color_viridis_c(option = "plasma", name = "Pop Density\n(people/km²)", direction = -1) +
+  labs(
+    title = "Population Density in Philadelphia",
+    subtitle = "Block Group Centroids Represented by Circles",
+    caption = "Data source: 2019 ACS via tidycensus"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 18, face = "bold"),
+    plot.subtitle = element_text(size = 14, face = "italic"),
+    plot.caption = element_text(size = 10),
+    legend.position = "right"
+  )
+```
+For this map, I want to visualize population density across Philadelphia, and I used circular markers placed at the centroids of census block groups. The size and color of the circles correspond to the population density (in people per square kilometer), yellow for low density to dark purple for high density. This design allows for a clear spatial representation of densely populated areas. By encoding population density through two visual dimensions (size and color), viewers can quickly identify patterns and compare block groups.
 

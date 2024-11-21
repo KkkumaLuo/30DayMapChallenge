@@ -370,10 +370,90 @@ plot_ly(
 ```
 This 3D scatter plot illustrates the height distribution of buildings in Philadelphia. The data combines BASE_ELEVATION and APPROX_HGT to represent the total height of each building. The x- and y-axes denote the spatial coordinates (longitude and latitude), while the z-axis captures the total height. A 3D perspective was chosen to effectively visualize the spatial distribution and varying heights of buildings. The clustering of taller buildings demonstrates urban density and potential areas of economic or business activity. This map could be used for urban planning, zoning assessments, or real estate analysis.
 
+# 11/20 Day 12 Time and Space
 
+```{r}
+library(tidycensus)
+library(tidyverse)
+library(ggiraph)
+library(patchwork)
+```
 
+```{r}
+income_2010 <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "PA",
+  year = 2010,
+  geometry = TRUE
+) %>% 
+  rename(income_2010 = estimate)
 
+income_2020 <- get_acs(
+  geography = "county",
+  variables = "B19013_001",
+  state = "PA",
+  year = 2020,
+  geometry = TRUE
+) %>% 
+  rename(income_2020 = estimate)
 
+income_change <- income_2020 %>%
+  st_drop_geometry() %>%
+  select(GEOID, NAME, income_2020) %>%
+  left_join(income_2010 %>% st_drop_geometry() %>% select(GEOID, income_2010), by = "GEOID") %>%
+  mutate(
+    pct_change = (income_2020 - income_2010) / income_2010 * 100,
+    NAME = str_remove(NAME, " County, Pennsylvania")
+  ) %>%
+  left_join(income_2020 %>% select(GEOID, geometry), by = "GEOID") %>%
+  st_as_sf()
+
+income_state <- map_dfr(2010:2020, function(year) {
+  get_acs(
+    geography = "state",
+    variables = "B19013_001",
+    state = "PA",
+    year = year
+  ) %>%
+    mutate(year = year)
+})
+```
+
+```{r}
+map_panel <- ggplot(income_change, aes(fill = pct_change)) + 
+  geom_sf_interactive(aes(data_id = GEOID)) + 
+  scale_fill_distiller(palette = "RdYlGn", direction = 1, name = "Change (%)") + 
+  theme_void() +
+  labs(
+    title = "Change in Median Household Income (2010-2020)",
+    subtitle = "By county in Pennsylvania",
+    fill = "Percent Change"
+  )
+
+plot_panel <- ggplot(income_state, aes(x = year, y = estimate)) +
+  geom_line(color = "blue", size = 1) +
+  geom_point(color = "blue", size = 2) +
+  scale_y_continuous(labels = scales::label_dollar()) +
+  labs(
+    title = "Median Household Income Trend (2010-2020)",
+    x = "Year",
+    y = "Median Household Income",
+    caption = "Data source: ACS"
+  ) +
+  theme_minimal(base_size = 14)
+
+combined_plot <- girafe(
+  ggobj = map_panel + plot_panel,
+  width_svg = 10,
+  height_svg = 5
+) %>%
+  girafe_options(opts_hover(css = "fill:cyan;"))
+
+combined_plot
+```
+
+I combined spatial and temporal data to indicate the income change over space and time in Pennsylvania. The spatial change map highlights the percentage change in median household income (2010-2020) for each county in Pennsylvania. Counties with extreme changes are prominently visible through stark colors, helping viewers identify key areas quickly. In addition, the temporal trend plot illustrates the overall median household income trend for Pennsylvania from 2010 to 2020. These two visualization together can help identify counties where targeted economic policies might be needed based on negative or stagnant growth.
 
 
 

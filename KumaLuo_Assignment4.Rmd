@@ -514,3 +514,100 @@ ggplot() +
 ```
 For this map, I want to visualize population density across Philadelphia, and I used circular markers placed at the centroids of census block groups. The size and color of the circles correspond to the population density (in people per square kilometer), yellow for low density to dark purple for high density. This design allows for a clear spatial representation of densely populated areas. By encoding population density through two visual dimensions (size and color), viewers can quickly identify patterns and compare block groups.
 
+
+# 11/22 Day 22 2 Color
+
+```{r}
+library(tidycensus)
+library(ggplot2)
+library(sf)
+library(dplyr)
+library(tigris)
+```
+
+```{r}
+housing_vars <- c(
+  owner_occupied = "B25003_002E", 
+  renter_occupied = "B25003_003E",
+  total_housing = "B25001_001E"
+)
+
+philly_housing <- get_acs(
+  geography = "tract",
+  variables = housing_vars,
+  state = "PA",
+  county = "Philadelphia",
+  geometry = TRUE
+)
+
+philly_housing <- philly_housing %>%
+  select(GEOID, NAME, variable, estimate, geometry) %>%
+  pivot_wider(names_from = variable, values_from = estimate, names_prefix = "") %>%
+  mutate(
+    owner_occupied = B25003_002,
+    renter_occupied = B25003_003,
+    total_housing = B25001_001
+  )
+
+philly_housing <- philly_housing %>%
+  group_by(GEOID) %>%
+  mutate(
+    total_housing = owner_occupied + renter_occupied,
+    owner_pct = owner_occupied / total_housing,
+    renter_pct = renter_occupied / total_housing
+  )
+```
+
+```{r}
+philly_housing <- philly_housing %>%
+  mutate(
+    dominance = renter_pct - owner_pct, 
+    dominance_category = case_when(
+      dominance > 0 ~ "Rentership > Ownership",
+      dominance <= 0 ~ "Ownership > Rentership"
+    )
+  )
+
+philly_housing <- philly_housing %>%
+  drop_na()
+```
+
+
+```{r}
+ggplot(philly_housing) +
+  geom_sf(data = philly_census, fill = "grey90", color = "white") + 
+  geom_sf(aes(fill = dominance_category), color = NA) +
+  scale_fill_manual(
+    values = c("Rentership > Ownership" = "blue", "Ownership > Rentership" = "orange"),
+    name = "Housing Dominance"
+  ) +
+  labs(
+    title = "Ownership vs Rentership Dominance in Philadelphia",
+    subtitle = "Comparison of Housing Tenure by Census Tract",
+    caption = "Data Source: ACS 2019 5-Year Estimates"
+  ) +
+  theme_minimal() +
+    theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank()
+    )
+```
+
+The map illustrates the housing tenure dominance in Philadelphia at the census tract level. I want to highlight whether ownership or rentership is the prevailing housing type in different parts of the city. Each tract is colored based on the comparison of the proportion of owner-occupied housing units versus renter-occupied housing units. Orange areas represent tracts where ownership is greater than rentership and blue areas represent tracts where rentership is greater than ownership. This map helps identify areas where housing policies might focus on rental housing affordability or increasing homeownership opportunities. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

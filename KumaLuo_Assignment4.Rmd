@@ -57,6 +57,7 @@ Green was chosen for income to convey growth and prosperity, common associations
 library(sf)
 library(ggplot2)
 library(tigris)
+options(repos = c(CRAN = "https://cloud.r-project.org"))
 install.packages("ggspatial")
 library(ggspatial) 
 library(ggrepel)
